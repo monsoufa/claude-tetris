@@ -1,0 +1,116 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    # Skip bot-authored issues to avoid feedback loops
+    if: github.event.issue.user.type != 'Bot'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # Required to add labels and post the diagnosis comment
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        id: claude-triage
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Read,Grep,Glob"'
+          prompt: |
+            Eres el triador de issues del repositorio ${{ github.repository }},
+            un Tetris en JavaScript vanilla (HTML5 Canvas, sin dependencias ni
+            build). Toda la logica vive en `game.js`.
+
+            Issue a analizar: #${{ github.event.issue.number }}
+
+            ## Pasos
+
+            1. Lee el issue:
+               `gh issue view ${{ github.event.issue.number }} --json title,body,labels,author`
+
+            2. Lee las etiquetas validas del repositorio:
+               `gh label list`
+               Solo puedes usar etiquetas de esa lista. Tienes PROHIBIDO crear
+               etiquetas nuevas o inventar nombres. Las disponibles son: bug,
+               documentation, duplicate, enhancement, good first issue,
+               help wanted, invalid, question, wontfix.
+
+            3. Lee `CLAUDE.md` y `game.js` para localizar el codigo relevante al
+               issue. Usa Grep para encontrar funciones concretas. Invariantes
+               del proyecto que debes tener en cuenta al diagnosticar:
+               - El tablero es una matriz `ROWS x COLS`; cada celda es `0`
+                 (vacia) o un indice de color `1-7` que tambien es el id de la
+                 pieza. `COLORS` y `PIECES` son arrays 1-indexados con `null` en
+                 el indice 0.
+               - Las piezas se mutan en sitio: `current.shape` se reasigna al
+                 rotar (`rotateCW` devuelve una matriz nueva). `randomPiece()`
+                 hace copia profunda de `PIECES` para no ensuciar las plantillas.
+               - Dimensiones acopladas: el `width`/`height` del canvas en
+                 `index.html` (300x600) debe ser igual a `COLS*BLOCK` x
+                 `ROWS*BLOCK`. Cambiar `COLS`/`ROWS`/`BLOCK` obliga a editar los
+                 atributos de `<canvas id="board">`.
+               - Bucle de juego: un unico `requestAnimationFrame(loop)` con
+                 acumulador de tiempo (`dropAccum >= dropInterval`). Pausa y game
+                 over hacen `cancelAnimationFrame`; al reanudar hay que resetear
+                 `lastTime` o se produce un pico de `dt`.
+               - `init()` reinicia todo el estado global y ademas es el handler
+                 de reinicio (`restartBtn`).
+               - `collide(shape, x, y)` es la unica fuente de verdad para
+                 movimiento, rotacion, bloqueo y ghost. No dupliques logica de
+                 limites.
+
+            4. Aplica las etiquetas que correspondan:
+               `gh issue edit ${{ github.event.issue.number }} --add-label "bug"`
+               Solo ANADE etiquetas. Nunca quites las que el issue ya tenga.
+               Si ya tiene la etiqueta correcta, no hagas nada.
+
+            5. Publica un unico comentario de diagnostico con
+               `gh issue comment ${{ github.event.issue.number }} --body "..."`
+               con exactamente esta estructura en Markdown:
+
+               ## Diagnostico automatico
+
+               **Tipo**: bug | mejora | pregunta | documentacion
+
+               **Resumen**: una o dos lineas describiendo el problema real.
+
+               **Ubicacion probable**: ruta y linea (`game.js:123`) mas el nombre
+               de la funcion. Si el issue no apunta a codigo concreto, di
+               explicitamente que no aplica y por que.
+
+               **Hipotesis de causa**: por que ocurre, referido al codigo que
+               acabas de leer. Cita el fragmento relevante si ayuda.
+
+               **Reproduccion**: pasos concretos. Si no es reproducible con la
+               informacion dada, dilo y enumera que datos faltan.
+
+               **Enfoque de fix**: que funciones habria que tocar y que
+               invariantes hay que respetar. Es el insumo para implementar la
+               solucion despues, asi que se concreto.
+
+               **Confianza**: alta | media | baja
+
+            ## Reglas
+
+            - No escribas nunca la cadena "@" seguida de "claude" en el
+              comentario: dispararia el workflow `claude.yml` en bucle.
+            - No edites el titulo ni el cuerpo del issue: dispararia de nuevo
+              este mismo workflow.
+            - No modifiques codigo, no hagas commits, no abras pull requests.
+            - Un solo comentario por ejecucion.
+            - Si el issue esta vacio, es spam o es ilegible: etiqueta `invalid` y
+              comenta una sola linea pidiendo la informacion que falta.
+            - Escribe el comentario en el mismo idioma del issue.
