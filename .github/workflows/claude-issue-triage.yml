@@ -44,9 +44,9 @@ jobs:
             2. Lee las etiquetas validas del repositorio:
                `gh label list`
                Solo puedes usar etiquetas de esa lista. Tienes PROHIBIDO crear
-               etiquetas nuevas o inventar nombres. Las disponibles son: bug,
-               documentation, duplicate, enhancement, good first issue,
-               help wanted, invalid, question, wontfix.
+               etiquetas nuevas o inventar nombres. Las unicas que puedes
+               aplicar son: bug, documentation, duplicate, enhancement,
+               good first issue, question.
 
             3. Lee `CLAUDE.md` y `game.js` para localizar el codigo relevante al
                issue. Usa Grep para encontrar funciones concretas. Invariantes
@@ -72,7 +72,15 @@ jobs:
                  movimiento, rotacion, bloqueo y ghost. No dupliques logica de
                  limites.
 
-            4. Aplica las etiquetas que correspondan:
+            4. Aplica las etiquetas que correspondan segun el contenido del
+               issue. Usa solo estas etiquetas:
+               - `bug` — algo esta roto o se comporta de forma incorrecta
+               - `enhancement` — nueva funcionalidad o peticion de mejora
+               - `question` — pide ayuda o aclaracion
+               - `documentation` — la documentacion necesita actualizarse
+               - `good first issue` — tarea sencilla, apta para principiantes
+               - `duplicate` — parece un problema ya conocido o repetido
+
                `gh issue edit ${{ github.event.issue.number }} --add-label "bug"`
                Solo ANADE etiquetas. Nunca quites las que el issue ya tenga.
                Si ya tiene la etiqueta correcta, no hagas nada.
@@ -111,6 +119,7 @@ jobs:
               este mismo workflow.
             - No modifiques codigo, no hagas commits, no abras pull requests.
             - Un solo comentario por ejecucion.
-            - Si el issue esta vacio, es spam o es ilegible: etiqueta `invalid` y
-              comenta una sola linea pidiendo la informacion que falta.
+            - Si el issue esta vacio, es spam o es ilegible: no apliques
+              ninguna etiqueta y comenta una sola linea pidiendo la
+              informacion que falta.
             - Escribe el comentario en el mismo idioma del issue.
