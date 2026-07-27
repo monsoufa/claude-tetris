@@ -28,6 +28,12 @@ const PIECES = [
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
+const THEME = {
+  dark: { gridColor: '#22222e', highlightColor: 'rgba(255,255,255,0.12)' },
+  light: { gridColor: '#c7c7d6', highlightColor: 'rgba(255,255,255,0.4)' },
+};
+let currentTheme = THEME.dark;
+
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-canvas');
@@ -39,6 +45,7 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const themeSwitch = document.getElementById('theme-switch');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -163,13 +170,13 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
   context.fillStyle = color;
   context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
   // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
+  context.fillStyle = currentTheme.highlightColor;
   context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
   context.globalAlpha = 1;
 }
 
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = currentTheme.gridColor;
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -301,4 +308,21 @@ document.addEventListener('keydown', e => {
 
 restartBtn.addEventListener('click', init);
 
+function applyTheme(isLight) {
+  document.body.classList.toggle('light', isLight);
+  currentTheme = isLight ? THEME.light : THEME.dark;
+  localStorage.setItem('tetris-theme', isLight ? 'light' : 'dark');
+  if (current) draw();
+  if (next) drawNext();
+}
+
+function initTheme() {
+  const isLight = localStorage.getItem('tetris-theme') === 'light';
+  themeSwitch.checked = isLight;
+  applyTheme(isLight);
+}
+
+themeSwitch.addEventListener('change', () => applyTheme(themeSwitch.checked));
+
+initTheme();
 init();
