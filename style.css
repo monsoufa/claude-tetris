@@ -154,6 +154,14 @@ body {
   border-radius: 4px;
 }
 
+.powerup-value {
+  font-size: 16px;
+}
+
+#board.frozen {
+  box-shadow: 0 0 24px 4px var(--accent), 0 0 40px var(--board-shadow);
+}
+
 /* ---- Controles ---- */
 .controls ul {
   list-style: none;
