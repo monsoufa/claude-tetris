@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tetris</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="wrapper">
     <div class="theme-toggle">
-      <input type="checkbox" id="theme-switch" class="theme-switch-input" />
+      <input type="checkbox" id="mute-switch" class="theme-switch-input">
+      <label for="mute-switch" class="theme-switch-label" aria-label="Silenciar efectos de sonido">
+        <span class="mute-switch-icon"></span>
+      </label>
+      <input type="checkbox" id="theme-switch" class="theme-switch-input">
       <label for="theme-switch" class="theme-switch-label" aria-label="Cambiar tema claro/oscuro">
         <span class="theme-switch-icon"></span>
       </label>
@@ -40,6 +44,11 @@
         <div class="panel-section">
           <span class="label">POWER-UP</span>
           <span class="value powerup-value" id="powerup-status">-</span>
+        </div>
+
+        <div class="panel-section">
+          <span class="label">COMBO</span>
+          <span class="value combo-value" id="combo-status">-</span>
         </div>
 
         <div class="panel-section controls">

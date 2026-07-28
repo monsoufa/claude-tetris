@@ -58,6 +58,8 @@ body {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: 8px;
 }
 
 .theme-switch-input {
@@ -92,6 +94,14 @@ body {
 
 .theme-switch-input:checked + .theme-switch-label .theme-switch-icon::before {
   content: '☀️';
+}
+
+.mute-switch-icon::before {
+  content: '🔊';
+}
+
+.theme-switch-input:checked + .theme-switch-label .mute-switch-icon::before {
+  content: '🔇';
 }
 
 .game-title {
@@ -156,6 +166,20 @@ body {
 
 .powerup-value {
   font-size: 16px;
+}
+
+.combo-value {
+  font-size: 18px;
+}
+
+.combo-value.active {
+  color: #81c784;
+  animation: combo-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes combo-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
 }
 
 #board.frozen {
